@@ -54,12 +54,34 @@ User.prototype.register = function() {
         this.cleanUp()
         await this.validate()
 
-        if(!this.errors) {
+        if(!this.errors.length) {
+            let salt = bcrypt.genSaltSync(10)
+            this.data.password = bcrypt.hashSync(this.data.password, salt)
             await usersCollection.insertOne(this.data)
-            resolve("success")
+            resolve(this.data)
         } else {
             reject(this.errors)
         }
+    } )  
+}
+
+User.prototype.login = function() {
+    return new Promise( (resolve, reject) => {
+        this.cleanUp()
+        
+        let attemptedUser = usersCollection.findOne({username : this.data.username})
+        .then( (attemptedUser) => {
+            if(attemptedUser && bcrypt.compareSync(this.data.password, attemptedUser.password)) {
+                resolve(attemptedUser)
+            } else {
+                reject("The Login or Password are incorrect")
+            }
+        })
+        .catch( () => {
+            reject("try Again later")
+        })
+
+     
     } )  
 }
 
