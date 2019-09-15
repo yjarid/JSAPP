@@ -17,7 +17,7 @@ exports.register = (req, res) => {
 
     user.register()
     .then( (data) => {
-        req.session.user= {username : data.username, id: data._id}
+        req.session.user= {username : data.username, id: data._id, avatar: user.avatar}
         req.flash("success" , "sucess registration login")
         req.session.save( () => { res.redirect("/") } ) 
     })
@@ -33,7 +33,7 @@ exports.login = (req, res) => {
 
     user.login()
     .then( (data) => {
-        req.session.user= {username : data.username, id: data._id}
+        req.session.user= {username : data.username, id: data._id, avatar: user.avatar}
         req.flash("success" , "sucess registration login")
         req.session.save( () => { res.redirect("/") } ) 
     })

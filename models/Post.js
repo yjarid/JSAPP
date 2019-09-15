@@ -43,6 +43,34 @@ Post.prototype.create = function() {
     })
 }
 
+Post.reusablePostQuery =  function(uniqueOperation, visitorId) {
+    return new Promise( async (resolve, reject) => {
+        let aggOperation = uniqueOperation.concat([
+            {$lookup: {from: "users", localField: "author", foreignField: "_id", as: "authorDocument"}},
+            {$project: {
+                title: 1,
+                body: 1,
+                createdDate: 1,
+                authorId: "$author",
+                author: {$arrayElemAt: ["$authorDocument", 0]}
+            }}
+        ])
+
+        let posts = await postsCollection.aggregate(aggOperation).toArray()
+
+        // clean up author property in each post object
+        posts = posts.map( (post) => {
+            post.isVisitorOwner = post.authorId.equals(visitorId)
+            post.author = {
+                username: post.author.username,
+                avatar: new User(post.author, true).avatar
+            }
+            return post
+        })
+        resolve(posts)
+    })
+}
+
 Post.findSingleById = (id) => {
     return new Promise( (resole, reject) => {
 
@@ -52,10 +80,7 @@ Post.findSingleById = (id) => {
         }
 
          postsCollection.findOne({_id : new ObjectID(id) })
-         .then(post => {
-             
-             resole(post)
-         })
+         .then(post =>  resole(post) )
          .catch( () => reject())
     })
     
