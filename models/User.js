@@ -4,9 +4,11 @@ const bcrypt = require('bcryptjs')
 const md5 = require('md5')
 
 
-let User = function(data) {
-    this.data = data,
+let User = function(data,getAvatar ) {
+    this.data = data
     this.errors = []
+    if(getAvatar == undefined) {getAvatar = false}
+    if(getAvatar) { this.getAvatar()}
 }
 
 User.prototype.cleanUp = function() {
@@ -55,14 +57,43 @@ User.prototype.register = function() {
         await this.validate()
 
         if(!this.errors.length) {
-             usersCollection.insertOne(this.data)
-             .then( ()=> resolve("success"))
-             .catch((err) => reject(err))
-                      
+            let salt = bcrypt.genSaltSync(10)
+            this.data.password = bcrypt.hashSync(this.data.password, salt)
+            await usersCollection.insertOne(this.data)
+            this.getAvatar()
+            resolve(this.data)
         } else {
             reject(this.errors)
         }
     } )  
+}
+
+
+User.prototype.login = function() {
+    return new Promise( (resolve, reject) => {
+        this.cleanUp()
+        
+        let attemptedUser = usersCollection.findOne({username : this.data.username})
+        .then( (attemptedUser) => {
+            if(attemptedUser && bcrypt.compareSync(this.data.password, attemptedUser.password)) {
+                 //thes 2 lignes are for avatar part is for 
+                 this.data = attemptedUser
+                 this.getAvatar()
+                resolve(attemptedUser)
+            } else {
+                reject("The Login or Password are incorrect")
+            }
+        })
+        .catch( () => {
+            reject("try Again later")
+        })
+
+     
+    } )  
+}
+
+User.prototype.getAvatar = function() {
+    this.avatar = `https://gravatar.com/avatar/${md5(this.data.email)}?s=128`
 }
 
 module.exports = User
