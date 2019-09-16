@@ -1,8 +1,6 @@
 const User = require('../models/User')
 
-exports.home = (req, res) => {
-    res.render('home-guest')
-}
+
 
 exports.register = (req, res) => {
     let user = new User(req.body)
@@ -17,4 +15,8 @@ exports.register = (req, res) => {
         req.session.save( () => { res.redirect("/") } ) 
         
     })
+}
+
+exports.home = (req, res) => {
+    res.render('home-guest', {regErrors: req.flash('regErrors')})
 }

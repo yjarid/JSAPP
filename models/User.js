@@ -54,9 +54,11 @@ User.prototype.register = function() {
         this.cleanUp()
         await this.validate()
 
-        if(!this.errors) {
-            await usersCollection.insertOne(this.data)
-            resolve("success")
+        if(!this.errors.length) {
+             usersCollection.insertOne(this.data)
+             .then( ()=> resolve("success"))
+             .catch((err) => reject(err))
+                      
         } else {
             reject(this.errors)
         }
