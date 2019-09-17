@@ -1,4 +1,5 @@
 const User = require('../models/User')
+const Post = require('../models/Post')
 
 
 
@@ -28,6 +29,7 @@ exports.register = (req, res) => {
     })
 }
 
+
 exports.login = (req, res) => {
     let user = new User(req.body)
 
@@ -47,6 +49,16 @@ exports.logout = (req, res) => {
     req.session.destroy( () => {
         res.redirect("/")
     })
+}
+
+exports.profilePostsScreen = (req, res) => {
+    User.findByUsername(req.params.username)
+    .then( (user) => {
+        Post.findPostsByAuthor(user.id, req.visitorId)
+        .then( (posts) => res.render('profile', {user : user, posts: posts}))
+        .catch( () => res.render('404'))        
+    })
+    .catch( () => res.render('404'))
 }
 
 exports.home = (req, res) => {

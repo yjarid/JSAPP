@@ -3,10 +3,11 @@ const ObjectID = require('mongodb').ObjectID
 const User = require('./User')
 
 
-let Post = function(data, authorId) {
+let Post = function(data, authorId, postId) {
     this.data = data,
     this.errors = [],
-    this.authorId = authorId
+    this.authorId = authorId,
+    this.postId = postId
 }
 
 
@@ -42,6 +43,29 @@ Post.prototype.create = function() {
         } else {
             reject(this.errors)
         }
+    })
+}
+
+Post.prototype.update = function() {
+    return new Promise( async (resolve , reject) => {
+        this.cleanUp()
+        this.validate()
+
+        // grab the author id to ensure it is the one he will update the post
+        let post = await postsCollection.findOne({_id: new ObjectID(this.postId)})
+        let isPostOwner = post.author.equals(this.authorId)
+
+        if(isPostOwner) {
+            if(!this.errors.length) {
+                await postsCollection.findOneAndUpdate({_id: new ObjectID(this.postId)}, {$set: {title: this.data.title, body: this.data.body}})
+                resolve()
+            } else {
+                reject(this.errors)
+            }
+        } else {
+            reject(["Not allowed"])
+        }
+       
     })
 }
 
@@ -94,6 +118,28 @@ Post.findSingleById = (postId, visitorId) => {
         }
       })
     
+}
+
+Post.delete = function(postID, visitorID) {
+    return new Promise( (resolve, reject) => {
+      Post.findSingleById(postID, visitorID)
+      .then( (post) => {
+          if(post.isVisitorOwner) {
+            postsCollection.deleteOne({_id : new ObjectID(postID)})
+            .then( () => resolve())
+          } else {
+              reject()
+          }
+      })
+      .catch( () => reject())
+    })
+}
+
+Post.findPostsByAuthor = function(authorID) {
+        return Post.reusablePostQuery([
+            {$match: {author: authorID}},
+            {$sort: {createdDate: -1}}
+          ])
 }
 
 

@@ -30,7 +30,7 @@ User.prototype.validate =  function() {
     if(!validator.isAlphanumeric(this.data.username)) {this.errors.push("username shoul only have letters and numbers")}
     if(this.data.username.length > 10) {this.errors.push("password must be no more than 10 character ")}
     if(!validator.isEmail(this.data.email)) {this.errors.push("not valid email ")}
-    if(!this.data.password || this.data.password.length < 8) {this.errors.push("password must be atleast 8 character ")}
+    if(!this.data.password || this.data.password.length < 6) {this.errors.push("password must be atleast 8 character ")}
     if(this.data.password.length > 20) {this.errors.push("password must be no more than 20 character ")}
 
     return new Promise( async (resolve, reject) => {
@@ -94,6 +94,30 @@ User.prototype.login = function() {
 
 User.prototype.getAvatar = function() {
     this.avatar = `https://gravatar.com/avatar/${md5(this.data.email)}?s=128`
+}
+
+User.findByUsername = function(username) {
+    return new Promise( (resolve, reject) => {
+        usersCollection.findOne({username : username})
+        .then( (userInfo) => {
+            if(userInfo) {
+                let user = new User(userInfo, true)
+                user = {
+                    id : user.data._id,
+                    username: user.data.username,
+                    avatar: user.avatar
+                }
+                console.log(user)
+                resolve(user)
+            } else {
+                reject()
+            }
+        })
+        .catch( () => {
+            reject()
+        })
+    })
+    
 }
 
 module.exports = User
