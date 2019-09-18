@@ -1,7 +1,8 @@
 const Follow = require('../models/Follow')
 
 exports.addFollow = (req, res) => {
-   let follow = new Follow(req.params.username, req.visitorID)
+   let follow = new Follow(req.params.username, req.visitorId)
+   console.log(req.visitorID)
    follow.create()
    .then( () => {
     req.flash('success', `Successfully followed ${req.params.username}`)

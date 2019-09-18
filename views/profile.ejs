@@ -4,14 +4,14 @@
 
     <%- include('includes/flash') %>
 
-  <h2><img class="avatar-small" src="<%= user.avatar %>"> <%= user.username %> 
-    <% if(user) { 
+  <h2><img class="avatar-small" src="<%= profileUser.avatar %>"> <%= profileUser.username %> 
+    <% if(visitorId) { 
           if(isFollowing) { %>
-            <form class="ml-2 d-inline" action="/unFollow/<%= user.username %>" method="POST">
+            <form class="ml-2 d-inline" action="/unFollow/<%= profileUser.username %>" method="POST">
               <button class="btn btn-danger btn-sm">Stop Following <i class="fas fa-user-times"></i></button>
             </form>
       <%    } else { %>
-            <form class="ml-2 d-inline" action="/follow/<%= user.username %>" method="POST">
+            <form class="ml-2 d-inline" action="/follow/<%= profileUser.username %>" method="POST">
               <button class="btn btn-primary btn-sm">Follow <i class="fas fa-user-plus"></i></button>
             </form>
     <%      }
@@ -27,7 +27,7 @@
   <div class="list-group">
     <% posts.forEach(function(post) { %>
       <a href="/post/<%= post._id %>" class="list-group-item list-group-item-action">
-        <img class="avatar-tiny" src="<%= user.avatar %>">
+        <img class="avatar-tiny" src="<%= profileUser.avatar %>">
         <strong><%= post.title %></strong> on <%= post.createdDate.getMonth() + 1 %>/<%= post.createdDate.getDate() %>/<%= post.createdDate.getFullYear() %>
       </a>
     <% }) %>

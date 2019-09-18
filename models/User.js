@@ -107,7 +107,6 @@ User.findByUsername = function(username) {
                     username: user.data.username,
                     avatar: user.avatar
                 }
-                console.log(user)
                 resolve(user)
             } else {
                 reject()
