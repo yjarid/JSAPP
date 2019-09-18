@@ -88,6 +88,7 @@ Post.reusablePostQuery =  function(uniqueOperation, visitorId) {
         // clean up author property in each post object
         posts = posts.map( (post) => {
             post.isVisitorOwner = post.authorId.equals(visitorId)
+            post.authorId = undefined
             post.author = {
                 username: post.author.username,
                 avatar: new User(post.author, true).avatar
@@ -140,6 +141,21 @@ Post.findPostsByAuthor = function(authorID) {
             {$match: {author: authorID}},
             {$sort: {createdDate: -1}}
           ])
+}
+
+Post.search = function(searchTerm) {
+    return new Promise( async (resolve, reject) => {
+        if(typeof(searchTerm) == "string"){
+            let posts = await Post.reusablePostQuery([
+                {$match: {$text: {$search: searchTerm}}},
+                {$sort: {score: {$meta: "textScore"}}}
+            ])
+            resolve(posts)
+        } else {
+            reject()
+        }
+
+    })
 }
 
 

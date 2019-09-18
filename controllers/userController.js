@@ -1,7 +1,25 @@
 const User = require('../models/User')
 const Post = require('../models/Post')
+const Follow = require('../models/Follow')
 
+exports.profileUserExist = (req, res, next) => {
+    User.findByUsername(req.params.username)
+    .then( (user) => {
+        req.profileUser = user
+        next()
+    })
+    .catch( () => res.render('404'))
+ }
 
+exports.sharedProfileData = async (req, res, next) => {
+    let isFollowing = false
+    console.log(req.session.user)
+    if(req.session.user) {
+        isFollowing = await Follow.isVisitorFollowing(req.profileUser.id, req.visitorId)
+    }
+    req.isFollowing = isFollowing
+    next()
+}
 
 exports.mustBeLoggedIn = (req, res, next) => {
     if(req.session.user) {
@@ -52,13 +70,17 @@ exports.logout = (req, res) => {
 }
 
 exports.profilePostsScreen = (req, res) => {
-    User.findByUsername(req.params.username)
-    .then( (user) => {
-        Post.findPostsByAuthor(user.id, req.visitorId)
-        .then( (posts) => res.render('profile', {user : user, posts: posts}))
+     if(req.profileUser) {
+        Post.findPostsByAuthor(req.profileUser.id, req.visitorId)
+        .then( (posts) => res.render('profile', {
+                                user : req.profileUser, 
+                                posts: posts,
+                                isFollowing: req.isFollowing
+                            }))
         .catch( () => res.render('404'))        
-    })
-    .catch( () => res.render('404'))
+    } else {
+        res.render('404')
+    }  
 }
 
 exports.home = (req, res) => {
